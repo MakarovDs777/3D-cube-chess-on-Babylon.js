@@ -38,60 +38,61 @@
         };
 
         createScene();
-/*        const canvas = document.getElementById("renderCanvas");
-        const engine = new BABYLON.Engine(canvas, true);
+/*
+const canvas = document.getElementById("renderCanvas");
+const engine = new BABYLON.Engine(canvas, true);
 
-        const createMeshFromArrays = (vertices, faces, scene) => {
-            const positions = [];
-            const indices = [];
-            const uvs = [];
+const createMeshFromArrays = (vertices, faces, scene) => {
+    const positions = [];
+    const indices = [];
+    const uvs = [];
 
-            vertices.forEach(vertex => {
-                positions.push(vertex[0], vertex[1], vertex[2]);
-            });
+    vertices.forEach(vertex => {
+        positions.push(vertex[0], vertex[1], vertex[2]);
+    });
 
-            faces.forEach(face => {
-                indices.push(face[0], face[1], face[2]);
-                indices.push(face[2], face[1], face[0]);
-            });
+    faces.forEach(face => {
+        indices.push(face[0], face[1], face[2]);
+        indices.push(face[2], face[1], face[0]);
+    });
 
-            const uv1 = [0, 0, 1, 0, 1, 1, 0, 1];
-            const uv2 = [1, 0, 0, 0, 0, 1, 1, 1];
-            uvs.push(...uv1, ...uv2);
+    const uv1 = [0, 0, 1, 0, 1, 1, 0, 1];
+    const uv2 = [1, 0, 1, 1, 0, 1, 0, 0];
+    uvs.push(...uv1,...uv2);
 
-            const mesh = new BABYLON.Mesh("customMesh", scene);
-            const vertexData = new BABYLON.VertexData();
-            vertexData.positions = positions;
-            vertexData.indices = indices;
-            vertexData.uvs = uvs;
+    const mesh = new BABYLON.Mesh("customMesh", scene);
+    const vertexData = new BABYLON.VertexData();
+    vertexData.positions = positions;
+    vertexData.indices = indices;
+    vertexData.uvs = uvs;
 
-            vertexData.applyToMesh(mesh);
+    vertexData.applyToMesh(mesh);
 
-            const material = new BABYLON.StandardMaterial("material", scene);
-            material.diffuseTexture = new BABYLON.Texture("https://i.postimg.cc/Pq7xgZY0/wallpaper.jpg", scene);
-            material.backFaceCulling = false;
+    const material = new BABYLON.StandardMaterial("material", scene);
+    material.diffuseTexture = new BABYLON.Texture("https://i.postimg.cc/Pq7xgZY0/wallpaper.jpg", scene);
+    material.backFaceCulling = false;
 
-            mesh.material = material;
+    mesh.material = material;
 
-            return mesh;
-        };
+    return mesh;
+};
 
-        const createScene = () => {
-            const scene = new BABYLON.Scene(engine);
-            const camera = new BABYLON.ArcRotateCamera("camera", Math.PI / 2, Math.PI / 4, 10, BABYLON.Vector3.Zero(), scene);
-            camera.attachControl(canvas, true);
-            scene.clearColor = new BABYLON.Color3(0, 0, 0); // Черный фон
+const createScene = () => {
+    const scene = new BABYLON.Scene(engine);
+    const camera = new BABYLON.ArcRotateCamera("camera", Math.PI / 2, Math.PI / 4, 10, BABYLON.Vector3.Zero(), scene);
+    camera.attachControl(canvas, true);
+    scene.clearColor = new BABYLON.Color3(1, 1, 1); // Белый фон
 
-            const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
-            light.intensity = 0.7;
+    const light = new BABYLON.DirectionalLight("light", new BABYLON.Vector3(0, 1, 0), scene);
+    light.intensity = 0.7;
 
-            // Создание черного куба
-            const box = BABYLON.MeshBuilder.CreateBox("box", { size: 2 }, scene);
-            const boxMaterial = new BABYLON.StandardMaterial("boxMaterial", scene);
-            boxMaterial.diffuseColor = new BABYLON.Color3(0, 0, 0); // Черный цвет
-            box.material = boxMaterial;
+    // Создание куба
+    const box = BABYLON.MeshBuilder.CreateBox("box", { size: 2 }, scene);
+    const boxMaterial = new BABYLON.StandardMaterial("boxMaterial", scene);
+    boxMaterial.diffuseColor = new BABYLON.Color3(0, 0, 0); // Черный цвет
+ box.material = boxMaterial;
 
-            // Пример данных для вершин и граней шахматной фигуры (замените вашими значениями)
+    // Создаемматную фигуру
             const vertices = [[-0.741494, 2.246804, -0.865301], [0.076189, 2.246804, -1.139356], [0.848046, 2.246804, -0.754828], [1.121989, 2.246804, 0.062743], [0.737573, 2.246804, 0.834713], [-0.08011, 2.246804, 1.108655], [-0.851968, 2.246804, 0.724127], [-1.12591, 2.246804, -0.093443], [-1.026977, 0.662305, -1.193584], [0.106328, 0.662305, -1.573294], [1.176217, 0.662305, -1.040423], [1.55604, 0.662305, 0.092995], [1.023056, 0.662305, 1.162884], [-0.110249, 0.662305, 1.542594], [-1.180139, 0.662305, 1.009722], [-1.559849, 0.662305, -0.123695], [-0.776451, 1.866084, -0.905636], [0.079886, 1.866084, -1.192576], [0.888269, 1.866084, -0.789897], [1.175209, 1.866084, 0.066441], [0.772642, 1.866084, 0.874936], 
 [-0.083807, 1.866084, 1.161875], [-0.892191, 1.866084, 0.759196], [-1.17913, 1.866084, -0.097141], [-1.133081, 1.080333, -1.315486], [0.117532, 1.080333, -1.734523], [1.298231, 1.080333, -1.146526], [1.717268, 1.080333, 0.104199], [1.12916, 1.080333, 1.284786], [-0.121454, 1.080333, 1.703823], [-1.302152, 1.080333, 1.115826], [-1.72119, 1.080333, -0.134899], [-1.268764, 0.622866, -1.471448], [-1.287587, 0.518891, -1.49296], [0.13389, 0.518891, -1.969251], [0.131873, 0.622866, -1.94068], [1.475706, 0.518891, -1.30092], [1.454081, 0.622866, -1.282097], [1.951996, 0.518891, 0.120445], [1.923426, 0.622866, 0.11854], [1.283666, 0.518891, 1.46226], [1.264842, 0.622866, 1.440748], [-0.137812, 0.518891, 1.938551], [-0.135795, 0.622866, 1.90998], [-1.479627, 0.518891, 1.27022], [-1.458003, 0.622866, 1.251397], [-1.955806, 0.518891, -0.151145], [-1.927347, 0.622866, -0.149128], [-1.051178, 0.029828, -1.22137], [-1.076276, 0.043833, -1.250165], [0.108905, 0.029827, -1.610044], [0.111594, 0.043833, -1.648139], [1.204004, 0.029828, -1.064624], [1.232911, 0.043833, -1.089609], [1.592677, 0.029828, 0.09546], [1.630884, 0.043833, 0.098149], [1.047257, 0.029828, 1.19067], [1.072354, 0.043833, 1.219465], [-0.112826, 0.029828, 1.579344], [-0.115403, 0.043833, 1.617439], [-1.207925, 0.029828, 1.033924], [-1.236832, 0.043833, 1.059021], [-1.596599, 0.029828, -0.12616], [-1.634805, 0.043833, -0.128849], [0.069242, 2.246804, -1.040087], [-0.676174, 2.246804, -0.790345], [0.772978, 2.246804, -0.689619], [1.02272, 2.246804, 0.055909], [0.672252, 2.246804, 0.759645], [-0.073163, 2.246804, 1.009386], [-0.776899, 2.246804, 0.658919], [-1.026641, 2.246804, -0.086609], [0.05378, 3.261568, -0.816451], [-0.529062, 3.261568, -0.621161], [0.603907, 3.261568, -0.542508], [0.799196, 3.261568, 0.040335], [0.525141, 3.261568, 
 0.590573], [-0.05759, 3.261568, 0.78575], [-0.607828, 3.261568, 0.511808], [-0.803117, 3.261568, -0.071035], [-0.519203, 4.524394, 0.43461], [0.041119, 4.78153, -0.634607], [-0.409402, 4.78153, -0.483686], [0.466319, 4.78153, -0.422735], [0.61724, 4.78153, 0.027674], [0.40548, 4.78153, 0.452985], [-0.045041, 4.78153, 0.603906], [-0.47024, 4.78153, 0.392034], [-0.621161, 4.78153, -0.058374], [-1.040982, 4.591619, -0.087617], [-1.040982, 4.731559, -0.087617], [-0.685585, 4.731559, -0.801213], [-0.685585, 4.591619, -0.801213], [-0.074172, 4.591619, 1.023727], [-0.074172, 4.731559, 1.023727], [-0.787768, 4.731559, 0.66833], [-0.787768, 4.591619, 0.66833], [1.037173, 4.591619, 0.056917], [1.037173, 4.731559, 0.056917], [0.681664, 4.731559, 0.770512], [0.681664, 4.591619, 0.770512], [0.07025, 4.591619, -1.054428], [0.07025, 4.731559, 
@@ -122,37 +123,40 @@
 290, 127, 403], [403, 127, 126], [403, 131, 130], [126, 404, 131], [131, 404, 132], [404, 126, 133], [126, 109, 405], [405, 133, 126], [405, 109, 144], [131, 406, 119], [119, 406, 118], [406, 131, 132], [119, 409, 124], [124, 409, 125], [409, 119, 118], [124, 411, 107], [411, 124, 125], [107, 411, 410], [101, 412, 92], [412, 101, 122], [92, 412, 105], [102, 413, 91], [413, 101, 92], [91, 413, 92], [81, 414, 82], [414, 81, 102], [82, 414, 91], [192, 415, 194], [194, 415, 186], [415, 184, 186], [192, 194, 416], [416, 194, 178], [416, 176, 192], [192, 417, 
 193], [193, 417, 177], [417, 192, 176], [193, 418, 192], [418, 185, 184], [192, 418, 184], [208, 209, 419], [419, 209, 177], [419, 176, 208], [224, 420, 225], [420, 224, 216], [225, 420, 217], [217, 421, 225], [421, 168, 176], [225, 421, 176], [422, 423, 424, 208], [422, 208, 425], [208, 424, 209], [424, 423, 201], [209, 424, 201], [425, 168, 200, 422], [425, 208, 176], [214, 426, 183], [183, 426, 182], [215, 426, 214], [215, 214, 427], [427, 207, 215], [427, 214, 206], [423, 169, 201], [227, 226, 429], [219, 428, 227], [227, 428, 179, 267], [428, 219, 171], [429, 226, 218], [429, 219, 227], [168, 430, 160], [160, 430, 162], [170, 430, 168], [170, 431, 162], [171, 431, 170], [162, 431, 163], [171, 432, 163], [172, 432, 171], [163, 432, 164], [172, 433, 164], [173, 433, 172], [164, 433, 165], [436, 434, 255, 256], [436, 435, 167], [434, 167, 257], [174, 437, 166], [175, 437, 174], [166, 437, 435], [16, 17, 438], [438, 17, 25], [438, 24, 16], [24, 439, 8], [439, 24, 25], [8, 439, 9], [8, 440, 32], [440, 8, 9], [32, 440, 35], [0, 441, 16], [16, 441, 17], [1, 441, 0], [65, 442, 0], [64, 442, 65], [0, 442, 1], [6, 443, 22], [22, 443, 23], [7, 443, 6]]; // Добавьте свои данные
 
-            // Создаем шахматную фигуру
-            const chessPiece = createMeshFromArrays(vertices, faces, scene);
-            chessPiece.position.y = 0.5; // Поднимаем фигуру над плоскостью
+    const chessPiece = createMeshFromArrays(vertices, faces, scene);
+    chessPiece.position.y = 0.5; // Поднимаем фигуру над плоскостью
 
-            // Обработчик событий для перемещения фигуры
-            window.addEventListener("keydown", (event) => {
-                const moveDistance = 0.1;
-                switch (event.key) {
-                    case "ArrowUp":
-                        chessPiece.position.z -= moveDistance;
-                        break;
-                    case "ArrowDown":
-                        chessPiece.position.z += moveDistance;
-                        break;
-                    case "ArrowLeft":
-                        chessPiece.position.x -= moveDistance;
-                        break;
-                    case "ArrowRight":
-                        chessPiece.position.x += moveDistance;
-                        break;
-                }
-            });
+    const chessPieceMaterial = new BABYLON.StandardMaterial("chessPieceMaterial", scene);
+    chessPieceMaterial.diffuseColor = new BABYLON.Color3(1, 0, 0); // Красный цвет
+    chessPiece.material = chessPieceMaterial;
 
-            return scene;
-        };
+    // Обработчик событий для перемещения фигуры
+    window.addEventListener("keydown", (event) => {
+        const moveDistance = 0.1;
+        switch (event.key) {
+            case "ArrowUp":
+                chessPiece.position.z -= moveDistance;
+                break;
+            case "ArrowDown":
+                chessPiece.position.z += moveDistance;
+                break;
+            case "ArrowLeft":
+                chessPiece.position.x -= moveDistance;
+                break;
+            case "ArrowRight":
+                chessPiece.position.x += moveDistance;
+                break;
+        }
+    });
 
-        const scene = createScene();
-        engine.runRenderLoop(() => {
-            scene.render();
-        });
+    return scene;
+};
 
-        window.addEventListener('resize', () => {
-            engine.resize();
-        });*/
+const scene = createScene();
+engine.runRenderLoop(() => {
+    scene.render();
+});
+
+window.addEventListener("resize", () => {
+    engine.resize();
+});*/
