@@ -69,7 +69,7 @@ const createMeshFromArrays = (vertices, faces, scene) => {
     vertexData.applyToMesh(mesh);
 
     const material = new BABYLON.StandardMaterial("material", scene);
-    material.diffuseTexture = new BABYLON.Texture("https://i.postimg.cc/Pq7xgZY0/wallpaper.jpg", scene);
+    material.diffuseTexture = new BABYLON.Texture("https://i.postimg.cc/y83ChCs2/image.png", scene);
     material.backFaceCulling = false;
 
     mesh.material = material;
