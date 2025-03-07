@@ -8,6 +8,11 @@ const createScene = function () {
     const camera = new BABYLON.ArcRotateCamera("Camera", Math.PI / 3, Math.PI / 6, 10, BABYLON.Vector3.Zero(), scene);
     camera.attachControl(canvas, true);
 
+    // Настройка плавного приближения
+    camera.inertia = 0.7; // Параметр инерции
+    camera.lowerRadiusLimit = 2; // Минимальное расстояние до цели
+    camera.upperRadiusLimit = 20; // Максимальное расстояние до цели
+
     // Свет
     const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(1, 1, 0), scene);
     const light1 = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(-1, -1, 0), scene);
@@ -30,10 +35,7 @@ const createScene = function () {
     for (let i = 0; i < 6; i++) {
         const material = new BABYLON.StandardMaterial(`material${i}`, scene);
         material.diffuseTexture = new BABYLON.Texture(textureUrls[i], scene, true);
-        
-        // Отключение блеска
-        material.specularColor = new BABYLON.Color3(0, 0, 0); // Без отражений
-        
+        material.specularColor = new BABYLON.Color3(0, 0, 0); // Отключение блеска
         materials.push(material);
     }
 
@@ -197,5 +199,3 @@ engine.runRenderLoop(() => {
 window.addEventListener("resize", function () {
     engine.resize();
 });
-
-
