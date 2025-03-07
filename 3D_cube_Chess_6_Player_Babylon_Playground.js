@@ -1,11 +1,11 @@
 const canvas = document.getElementById("renderCanvas");
 const engine = new BABYLON.Engine(canvas, true);
 
-const createScene = async () => {
+const createScene = function () {
     const scene = new BABYLON.Scene(engine);
-    
-    // Камера с возможностью вращения
-    const camera = new BABYLON.ArcRotateCamera("camera", Math.PI / 2, Math.PI / 2, 5, BABYLON.Vector3.Zero(), scene);
+
+    // Камера
+    const camera = new BABYLON.ArcRotateCamera("Camera", Math.PI / 3, Math.PI / 6, 10, BABYLON.Vector3.Zero(), scene);
     camera.attachControl(canvas, true);
 
     // Свет
@@ -14,7 +14,7 @@ const createScene = async () => {
 
     // Создание куба
     const box = BABYLON.MeshBuilder.CreateBox("box", { size: 2 }, scene);
-
+    
     // Создание массива материалов для каждой стороны куба
     const materials = [];
     const textureUrls = [
@@ -69,30 +69,48 @@ const createScene = async () => {
     };
 
     const pieceDistance = 1; // Расстояние между фигурами
-    let index = 0;
+    let selectedPiece = null;
+    let startingPoint = null;
 
     for (const pieceName in chessPieces) {
         const pieceData = chessPieces[pieceName];
         const chessPiece = createMeshFromArrays(pieceData.vertices, pieceData.faces, scene);
         chessPiece.position.y = 1; // Поднимаем фигуру над плоскостью
         
-        // Установка позиции фигуры на основе индекса
-        chessPiece.position.x = index * pieceDistance;
-        index++;
-        
-        const chessPieceMaterial = new BABYLON.StandardMaterial("chessPieceMaterial", scene);
-        chessPieceMaterial.diffuseColor = new BABYLON.Color3(Math.random(), Math.random(), Math.random()); // Случайный цвет
-        chessPiece.material = chessPieceMaterial;
+        // Установка позиции фигуры
+        chessPiece.position.x = (Math.random() - 0.5) * 4; // Позиция может варьироваться
+        chessPiece.position.z = (Math.random() - 0.5) * 4; 
+
+        chessPiece.actionManager = new BABYLON.ActionManager(scene);
+        chessPiece.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPickDownTrigger, function () {
+            selectedPiece = chessPiece;
+            startingPoint = getMousePosition(scene);
+            if (startingPoint) {
+                setTimeout(function () {
+                    camera.detachControl(canvas);
+                }, 0);
+            }
+        }));
+
+        chessPiece.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPickUpTrigger, function () {
+            selectedPiece = null;
+            startingPoint = null;
+            camera.attachControl(canvas, true);
+        }));
     }
 
-    // Запуск цикла рендеринга
-    engine.runRenderLoop(() => {
-        scene.render();
+    scene.onPointerObservable.add((pointerInfo) => {      		
+        if (selectedPiece) {
+            const current = getMousePosition(scene);
+            if (current) {
+                const diff = current.subtract(startingPoint);
+                selectedPiece.position.addInPlace(diff);
+                startingPoint = current; // Обновляем начальную точку
+            }
+        }
     });
 
-    window.addEventListener("resize", () => {
-        engine.resize();
-    });
+    return scene;
 };
 
 // Функция для создания фигуры из массивов
@@ -124,12 +142,21 @@ const createMeshFromArrays = (vertices, faces, scene) => {
     vertexData.applyToMesh(mesh, true);
 
     const material = new BABYLON.StandardMaterial("material", scene);
-    material.diffuseTexture = new BABYLON.Texture("https://i.postimg.cc/y83ChCs2/image.png", scene); // Текстура для фигуры
+    material.diffuseTexture = new BABYLON.Texture("https://i.postimg.cc/y83ChCs2/image.png", scene);
     material.backFaceCulling = false;
 
     mesh.material = material;
 
     return mesh;
+};
+
+// Получение позиции курсора относительно земли
+const getMousePosition = (scene) => {
+    const pickInfo = scene.pick(scene.pointerX, scene.pointerY);
+    if (pickInfo.hit) {
+        return pickInfo.pickedPoint;
+    }
+    return null;
 };
 
 createScene();
