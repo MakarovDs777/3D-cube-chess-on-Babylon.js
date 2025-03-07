@@ -30,6 +30,10 @@ const createScene = function () {
     for (let i = 0; i < 6; i++) {
         const material = new BABYLON.StandardMaterial(`material${i}`, scene);
         material.diffuseTexture = new BABYLON.Texture(textureUrls[i], scene, true);
+        
+        // Отключение блеска
+        material.specularColor = new BABYLON.Color3(0, 0, 0); // Без отражений
+        
         materials.push(material);
     }
 
@@ -116,7 +120,6 @@ const createScene = function () {
                 } else if (Math.abs(current.x) >= Math.abs(current.z)) { // Левые и правые плоскости
                     selectedPiece.rotation.y = current.x > 0 ? Math.PI / 2 : -Math.PI / 2; // 90 градусов
                     selectedPiece.rotation.x = Math.PI / 3; // 60 градусов
-                    // Перемещение по боковым плоскостям
                     selectedPiece.position.x = current.x;
                     selectedPiece.position.z = closestSurfaceY; // Позиция по Z допустима
                 } else { // Передняя и задняя плоскости
@@ -165,6 +168,7 @@ const createMeshFromArrays = (vertices, faces, scene) => {
 
     const material = new BABYLON.StandardMaterial("material", scene);
     material.diffuseTexture = new BABYLON.Texture("https://i.postimg.cc/y83ChCs2/image.png", scene);
+    material.specularColor = new BABYLON.Color3(0, 0, 0); // Отключение блеска
     material.backFaceCulling = false;
 
     mesh.material = material;
@@ -193,4 +197,5 @@ engine.runRenderLoop(() => {
 window.addEventListener("resize", function () {
     engine.resize();
 });
+
 
