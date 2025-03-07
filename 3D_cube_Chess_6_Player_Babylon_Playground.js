@@ -29,11 +29,11 @@ const createScene = function () {
     // Создание материалов и назначение текстур
     for (let i = 0; i < 6; i++) {
         const material = new BABYLON.StandardMaterial(`material${i}`, scene);
-        material.diffuseTexture = new BABYLON.Texture(textureUrls[i], scene, false, true);
+        material.diffuseTexture = new BABYLON.Texture(textureUrls[i], scene, true);
         materials.push(material);
     }
 
-    // Создание multiMaterial и присвоение его кубу
+    // Создание много материалов и присвоение его кубу
     const multiMaterial = new BABYLON.MultiMaterial("multiMaterial", scene);
     multiMaterial.subMaterials = materials;
     box.material = multiMaterial;
@@ -76,8 +76,8 @@ const createScene = function () {
         const pieceData = chessPieces[pieceName];
         const chessPiece = createMeshFromArrays(pieceData.vertices, pieceData.faces, scene);
         chessPiece.position.y = 1; // Поднимаем фигуру над плоскостью
-        
-        // Установка позиции фигуры
+
+        // Установка начальной позиции фигуры
         chessPiece.position.x = (Math.random() - 0.5) * 4; // Позиция может варьироваться
         chessPiece.position.z = (Math.random() - 0.5) * 4; 
 
@@ -99,13 +99,35 @@ const createScene = function () {
         }));
     }
 
-    scene.onPointerObservable.add((pointerInfo) => {      		
+    scene.onPointerObservable.add((pointerInfo) => {
         if (selectedPiece) {
             const current = getMousePosition(scene);
             if (current) {
-                const diff = current.subtract(startingPoint);
-                selectedPiece.position.addInPlace(diff);
-                startingPoint = current; // Обновляем начальную точку
+                const closestSurfaceY = Math.round(current.y);
+                selectedPiece.position.y = closestSurfaceY; // Привязываем к Y плоскости куба
+
+                // Определение плоскости и поворот фигуры
+                if (closestSurfaceY > 0) { // Верхняя плоскость
+                    selectedPiece.rotation.x = 0;
+                    selectedPiece.rotation.y = 0;
+                } else if (closestSurfaceY < 0) { // Нижняя плоскость
+                    selectedPiece.rotation.x = Math.PI; // 180 градусов
+                    selectedPiece.rotation.y = 0;
+                } else if (Math.abs(current.x) >= Math.abs(current.z)) { // Левые и правые плоскости
+                    selectedPiece.rotation.y = current.x > 0 ? Math.PI / 2 : -Math.PI / 2; // 90 градусов
+                    selectedPiece.rotation.x = Math.PI / 3; // 60 градусов
+                    // Перемещение по боковым плоскостям
+                    selectedPiece.position.x = current.x;
+                    selectedPiece.position.z = closestSurfaceY; // Позиция по Z допустима
+                } else { // Передняя и задняя плоскости
+                    selectedPiece.rotation.y = 0;
+                    selectedPiece.rotation.x = Math.PI / 3; // 60 градусов
+                    selectedPiece.position.z = current.z; // Сохраняем Z
+                    selectedPiece.position.x = closestSurfaceY; // Позиция по X допустима
+                }
+
+                // Обновляем текущие координаты
+                startingPoint = current;
             }
         }
     });
@@ -159,4 +181,16 @@ const getMousePosition = (scene) => {
     return null;
 };
 
-createScene();
+// Создание сцены
+const scene = createScene();
+
+// Запуск рендеринга сцены
+engine.runRenderLoop(() => {
+    scene.render();
+});
+
+// Обработка изменения размера окна
+window.addEventListener("resize", function () {
+    engine.resize();
+});
+
