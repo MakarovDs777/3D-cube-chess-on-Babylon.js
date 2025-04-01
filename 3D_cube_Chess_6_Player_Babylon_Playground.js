@@ -199,3 +199,205 @@ engine.runRenderLoop(() => {
 window.addEventListener("resize", function () {
     engine.resize();
 });
+
+/*
+const canvas = document.getElementById("renderCanvas");
+const engine = new BABYLON.Engine(canvas, true);
+
+const createScene = function () {
+    const scene = new BABYLON.Scene(engine);
+
+    // Камера
+    const camera = new BABYLON.ArcRotateCamera("Camera", Math.PI / 3, Math.PI / 6, 10, BABYLON.Vector3.Zero(), scene);
+    camera.attachControl(canvas, true);
+
+    // Настройка плавного приближения
+    camera.inertia = 0.7; // Параметр инерции
+    camera.lowerRadiusLimit = 2; // Минимальное расстояние до цели
+    camera.upperRadiusLimit = 20; // Максимальное расстояние до цели
+
+    // Свет
+    const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(1, 1, 0), scene);
+    const light1 = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(-1, -1, 0), scene);
+
+    // Создание куба
+    const box = BABYLON.MeshBuilder.CreateBox("box", { size: 2 }, scene);
+    
+    // Создание массива материалов для каждой стороны куба
+    const materials = [];
+    const textureUrls = [
+        "https://i.postimg.cc/63FJT0hZ/Joxi.jpg", // Передняя грань
+        "https://i.postimg.cc/SsX111Xv/Joxi.jpg", // Задняя грань
+        "https://i.postimg.cc/63FJT0hZ/Joxi.jpg", // Левая грань
+        "https://i.postimg.cc/SsX111Xv/Joxi.jpg", // Правая грань
+        "https://i.postimg.cc/63FJT0hZ/Joxi.jpg", // Верхняя грань
+        "https://i.postimg.cc/SsX111Xv/Joxi.jpg"  // Нижняя грань
+    ];
+
+    // Создание материалов и назначение текстур
+    for (let i = 0; i < 6; i++) {
+        const material = new BABYLON.StandardMaterial(`material${i}`, scene);
+        material.diffuseTexture = new BABYLON.Texture(textureUrls[i], scene, true);
+        material.specularColor = new BABYLON.Color3(0, 0, 0); // Отключение блеска
+        materials.push(material);
+    }
+
+    // Создание много материалов и присвоение его кубу
+    const multiMaterial = new BABYLON.MultiMaterial("multiMaterial", scene);
+    multiMaterial.subMaterials = materials;
+    box.material = multiMaterial;
+
+    // Словарь фигур
+    const chessPieces = {
+        rook: {
+            vertices: [[-0.036639, 0.134065, -0.047741], [0.006664, 0.134065, -0.062255], ...],
+            faces: [[24, 31, 236], [26, 25, 348], ...],
+        },
+        queen: {
+            vertices: [[0.005816, 0.126826, -0.053422], [0.041519, 0.126826, -0.029773], ...],
+            faces: [[24, 31, 259], [26, 25, 257], ...]
+        },
+        pawn: {
+            vertices: [[0.007733, 0.127043, -0.056573], [0.043695, 0.127043, -0.032641], ...],
+            faces: [[24, 31, 177], [26, 25, 172], ...],
+        },
+        king: {
+            vertices:  [[0.038982, 0.129987, -0.039903], [0.055926, 0.129987, 0.000948], ...],
+            faces: [[24, 31, 562], [26, 25, 527], ...],
+        },       
+        horse: {
+            vertices: [[0.045477, 0.123765, -0.035519], [0.05837, 0.123765, 0.005725], ...],
+            faces: [[105, 11, 333], [9, 106, 373], ...],
+        },
+        bishop: {
+            vertices: [[-0.049173, 0.129672, 0.034767], [-0.049449, 0.129672, -0.008699], ...],
+            faces: [[24, 31, 238], [26, 25, 226], ...],
+        }
+    };
+
+    const pieceDistance = 1; // Расстояние между фигурами
+    let selectedPiece = null;
+    let startingPoint = null;
+
+    for (const pieceName in chessPieces) {
+        const pieceData = chessPieces[pieceName];
+        const chessPiece = createMeshFromArrays(pieceData.vertices, pieceData.faces, scene);
+        chessPiece.position.y = 1; // Поднимаем фигуру над плоскостью
+
+        // Установка начальной позиции фигуры
+        chessPiece.position.x = (Math.random() - 0.5) * 4; // Позиция может варьироваться
+        chessPiece.position.z = (Math.random() - 0.5) * 4; 
+
+        chessPiece.actionManager = new BABYLON.ActionManager(scene);
+        chessPiece.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPickDownTrigger, function () {
+            selectedPiece = chessPiece;
+            startingPoint = getMousePosition(scene);
+            if (startingPoint) {
+                setTimeout(function () {
+                    camera.detachControl(canvas);
+                }, 0);
+            }
+        }));
+
+        chessPiece.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPickUpTrigger, function () {
+            selectedPiece = null;
+            startingPoint = null;
+            camera.attachControl(canvas, true);
+        }));
+    }
+
+    scene.onPointerObservable.add((pointerInfo) => {
+        if (selectedPiece) {
+            const current = getMousePosition(scene);
+            if (current) {
+                const closestSurfaceY = Math.round(current.y);
+                selectedPiece.position.y = closestSurfaceY; // Привязываем к Y плоскости куба
+
+                // Определение плоскости и поворот фигуры
+                if (closestSurfaceY > 0) { // Верхняя плоскость
+                    selectedPiece.rotation.x = 0;
+                    selectedPiece.rotation.y = 0;
+                } else if (closestSurfaceY < 0) { // Нижняя плоскость
+                    selectedPiece.rotation.x = Math.PI; // 180 градусов
+                    selectedPiece.rotation.y = 0;
+                } else if (Math.abs(current.x) >= Math.abs(current.z)) { // Левые и правые плоскости
+                    selectedPiece.rotation.y = current.x > 0 ? Math.PI / 2 : -Math.PI / 2; // 90 градусов
+                    selectedPiece.rotation.x = Math.PI / 3; // 60 градусов
+                    selectedPiece.position.x = current.x;
+                    selectedPiece.position.z = closestSurfaceY; // Позиция по Z допустима
+                } else { // Передняя и задняя плоскости
+                    selectedPiece.rotation.y = 0;
+                    selectedPiece.rotation.x = Math.PI / 3; // 60 градусов
+                    selectedPiece.position.z = current.z; // Сохраняем Z
+                    selectedPiece.position.x = closestSurfaceY; // Позиция по X допустима
+                }
+
+                // Обновляем текущие координаты
+                startingPoint = current;
+            }
+        }
+    });
+
+    return scene;
+};
+
+// Функция для создания фигуры из массивов
+const createMeshFromArrays = (vertices, faces, scene) => {
+    const positions = [];
+    const indices = [];
+    const uvs = [];
+
+    vertices.forEach(vertex => {
+        positions.push(vertex[0], vertex[1], vertex[2]);
+    });
+
+    faces.forEach(face => {
+        indices.push(face[0], face[1], face[2]);
+        indices.push(face[2], face[1], face[0]);
+    });
+
+    const uv1 = [0, 0, 1, 0, 1, 1, 0, 1];
+    for (let i = 0; i < faces.length; i++) {
+        uvs.push(...uv1);
+    }
+
+    const mesh = new BABYLON.Mesh("customMesh", scene);
+    const vertexData = new BABYLON.VertexData();
+    vertexData.positions = positions;
+    vertexData.indices = indices;
+    vertexData.uvs = uvs;
+
+    vertexData.applyToMesh(mesh, true);
+
+    const material = new BABYLON.StandardMaterial("material", scene);
+    material.diffuseTexture = new BABYLON.Texture("https://i.postimg.cc/y83ChCs2/image.png", scene);
+    material.specularColor = new BABYLON.Color3(0, 0, 0); // Отключение блеска
+    material.backFaceCulling = false;
+
+    mesh.material = material;
+
+    return mesh;
+};
+
+// Получение позиции курсора относительно земли
+const getMousePosition = (scene) => {
+    const pickInfo = scene.pick(scene.pointerX, scene.pointerY);
+    if (pickInfo.hit) {
+        return pickInfo.pickedPoint;
+    }
+    return null;
+};
+
+// Создание сцены
+const scene = createScene();
+
+// Запуск рендеринга сцены
+engine.runRenderLoop(() => {
+    scene.render();
+});
+
+// Обработка изменения размера окна
+window.addEventListener("resize", function () {
+    engine.resize();
+});
+*/
