@@ -22,3 +22,6 @@
 
 [3D cubic chess (Version 2 - More players) | Babylon.js Playground](https://playground.babylonjs.com/#PE5I01)
 
+[3D cubic chess (Version 3 - Correct version) | Babylon.js Playground](https://playground.babylonjs.com/#0O4Z6L#0)
+
+[3D cubic chess (Version 4 - Rules of moves) | Babylon.js Playground](https://playground.babylonjs.com/#IUOF0L#0)
