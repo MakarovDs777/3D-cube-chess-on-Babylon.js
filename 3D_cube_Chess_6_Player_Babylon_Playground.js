@@ -5,8 +5,8 @@ const createScene = function() {
     const scene = new BABYLON.Scene(engine);
 
     // Освещение
-    const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(1,1,0), scene);
-    const light1 = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(-1,-1,0), scene);
+    const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(1, 1, 0), scene);
+    const light1 = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(-1, -1, 0), scene);
 
     // Камера
     const camera = new BABYLON.ArcRotateCamera("Camera", Math.PI/3, Math.PI/4, 20, BABYLON.Vector3.Zero(), scene);
@@ -21,76 +21,120 @@ const createScene = function() {
     cubeMat.diffuseColor = new BABYLON.Color3(0.8, 0.8, 0.8);
     cube.material = cubeMat;
 
-    // Создаем сетки на гранях для ориентации
+    // Создаем сетку на гранях куба
     const gridCount = 8;
     const gridLines = [];
+
     function createGridOnFace(origin, uDir, vDir) {
-        for (let i=0; i<=gridCount; i++) {
+        for (let i = 0; i <= gridCount; i++) {
             const t = i / gridCount;
             const startV = origin.add(uDir.scale(t));
             const endV = origin.add(uDir.scale(t)).add(vDir);
-            const lineV = BABYLON.MeshBuilder.CreateLines(`vLine_${i}`, { points: [startV, endV] }, scene);
-            lineV.color = new BABYLON.Color3(0,0,0);
+            const lineV = BABYLON.MeshBuilder.CreateLines(`vLine_${i}_${origin.x}_${origin.y}_${origin.z}`, { points: [startV, endV] }, scene);
+            lineV.color = new BABYLON.Color3(0, 0, 0);
             gridLines.push(lineV);
+
             const startH = origin.add(vDir.scale(t));
             const endH = origin.add(uDir).add(vDir.scale(t));
-            const lineH = BABYLON.MeshBuilder.CreateLines(`hLine_${i}`, { points: [startH, endH] }, scene);
-            lineH.color = new BABYLON.Color3(0,0,0);
+            const lineH = BABYLON.MeshBuilder.CreateLines(`hLine_${i}_${origin.x}_${origin.y}_${origin.z}`, { points: [startH, endH] }, scene);
+            lineH.color = new BABYLON.Color3(0, 0, 0);
             gridLines.push(lineH);
         }
     }
 
-    // Создаем сетки на гранях
-    createGridOnFace(new BABYLON.Vector3(-cubeSize/2, -cubeSize/2, cubeSize/2), new BABYLON.Vector3(cubeSize,0,0), new BABYLON.Vector3(0,cubeSize,0)); // Передняя
-    createGridOnFace(new BABYLON.Vector3(cubeSize/2, -cubeSize/2, -cubeSize/2), new BABYLON.Vector3(-cubeSize,0,0), new BABYLON.Vector3(0,cubeSize,0)); // Задняя
-    createGridOnFace(new BABYLON.Vector3(-cubeSize/2, -cubeSize/2, -cubeSize/2), new BABYLON.Vector3(0,0,cubeSize), new BABYLON.Vector3(0,cubeSize,0)); // Левая
-    createGridOnFace(new BABYLON.Vector3(cubeSize/2, -cubeSize/2, cubeSize/2), new BABYLON.Vector3(0,0,-cubeSize), new BABYLON.Vector3(0,cubeSize,0)); // Правая
-    createGridOnFace(new BABYLON.Vector3(-cubeSize/2, cubeSize/2, cubeSize/2), new BABYLON.Vector3(cubeSize,0,0), new BABYLON.Vector3(0,0,-cubeSize)); // Верхняя
-    createGridOnFace(new BABYLON.Vector3(-cubeSize/2, -cubeSize/2, -cubeSize/2), new BABYLON.Vector3(cubeSize,0,0), new BABYLON.Vector3(0,0,cubeSize)); // Нижняя
+    // Создаем сетки на всех гранях (координаты оставлены как в исходнике)
+    createGridOnFace(new BABYLON.Vector3(-cubeSize/2, -cubeSize/2, cubeSize/2),
+                     new BABYLON.Vector3(cubeSize, 0, 0),
+                     new BABYLON.Vector3(0, cubeSize, 0));
+    createGridOnFace(new BABYLON.Vector3(cubeSize/2, -cubeSize/2, -cubeSize/2),
+                     new BABYLON.Vector3(-cubeSize, 0, 0),
+                     new BABYLON.Vector3(0, cubeSize, 0));
+    createGridOnFace(new BABYLON.Vector3(-cubeSize/2, -cubeSize/2, -cubeSize/2),
+                     new BABYLON.Vector3(0, 0, cubeSize),
+                     new BABYLON.Vector3(0, cubeSize, 0));
+    createGridOnFace(new BABYLON.Vector3(cubeSize/2, -cubeSize/2, cubeSize/2),
+                     new BABYLON.Vector3(0, 0, -cubeSize),
+                     new BABYLON.Vector3(0, cubeSize, 0));
+    createGridOnFace(new BABYLON.Vector3(-cubeSize/2, cubeSize/2, cubeSize/2),
+                     new BABYLON.Vector3(cubeSize, 0, 0),
+                     new BABYLON.Vector3(0, 0, -cubeSize));
+    createGridOnFace(new BABYLON.Vector3(-cubeSize/2, -cubeSize/2, -cubeSize/2),
+                     new BABYLON.Vector3(cubeSize, 0, 0),
+                     new BABYLON.Vector3(0, 0, cubeSize));
 
-    // Создаем клетки для каждой стороны
+    // Создаем клетки
     const cells = [];
-    for (let face=0; face<6; face++) {
-        for (let row=0; row<gridCount; row++) {
-            for (let col=0; col<gridCount; col++) {
+    for (let face = 0; face < 6; face++) {
+        for (let row = 0; row < gridCount; row++) {
+            for (let col = 0; col < gridCount; col++) {
                 let center;
-                switch(face) {
-                    case 0: // Передняя
-                        center = new BABYLON.Vector3(-cubeSize/2 + (col+0.5)* (cubeSize / gridCount), -cubeSize/2 + (row+0.5)* (cubeSize / gridCount), cubeSize/2);
+                switch (face) {
+                    case 0: // Верхняя
+                        center = new BABYLON.Vector3(
+                            -cubeSize/2 + (col + 0.5) * (cubeSize / gridCount),
+                            -cubeSize/2 + (row + 0.5) * (cubeSize / gridCount),
+                            cubeSize/2
+                        );
                         break;
-                    case 1: // Задняя
-                        center = new BABYLON.Vector3(-cubeSize/2 + (col+0.5)* (cubeSize / gridCount), -cubeSize/2 + (row+0.5)* (cubeSize / gridCount), -cubeSize/2);
+                    case 1: // Нижняя
+                        center = new BABYLON.Vector3(
+                            -cubeSize/2 + (col + 0.5) * (cubeSize / gridCount),
+                            -cubeSize/2 + (row + 0.5) * (cubeSize / gridCount),
+                            -cubeSize/2
+                        );
                         break;
-                    case 2: // Левая
-                        center = new BABYLON.Vector3(-cubeSize/2, -cubeSize/2 + (row+0.5)* (cubeSize / gridCount), -cubeSize/2 + (col+0.5)* (cubeSize / gridCount));
+                    case 2: // Передняя
+                        center = new BABYLON.Vector3(
+                            -cubeSize/2,
+                            -cubeSize/2 + (row + 0.5) * (cubeSize / gridCount),
+                            -cubeSize/2 + (col + 0.5) * (cubeSize / gridCount)
+                        );
                         break;
-                    case 3: // Правая
-                        center = new BABYLON.Vector3(cubeSize/2, -cubeSize/2 + (row+0.5)* (cubeSize / gridCount), -cubeSize/2 + (col+0.5)* (cubeSize / gridCount));
+                    case 3: // Задняя
+                        center = new BABYLON.Vector3(
+                            cubeSize/2,
+                            -cubeSize/2 + (row + 0.5) * (cubeSize / gridCount),
+                            -cubeSize/2 + (col + 0.5) * (cubeSize / gridCount)
+                        );
                         break;
-                    case 4: // Верхняя
-                        center = new BABYLON.Vector3(-cubeSize/2 + (col+0.5)* (cubeSize / gridCount), cubeSize/2, -cubeSize/2 + (row+0.5)* (cubeSize / gridCount));
+                    case 4: // Левая
+                        center = new BABYLON.Vector3(
+                            -cubeSize/2 + (col + 0.5) * (cubeSize / gridCount),
+                            cubeSize/2,
+                            -cubeSize/2 + (row + 0.5) * (cubeSize / gridCount)
+                        );
                         break;
-                    case 5: // Нижняя
-                        center = new BABYLON.Vector3(-cubeSize/2 + (col+0.5)* (cubeSize / gridCount), -cubeSize/2, -cubeSize/2 + (row+0.5)* (cubeSize / gridCount));
+                    case 5: // Правая
+                        center = new BABYLON.Vector3(
+                            -cubeSize/2 + (col + 0.5) * (cubeSize / gridCount),
+                            -cubeSize/2,
+                            -cubeSize/2 + (row + 0.5) * (cubeSize / gridCount)
+                        );
                         break;
                 }
-                const cellNumber = row*gridCount + col +1; // 1..64
+                const cellNumber = row * gridCount + col + 1;
                 cells.push({ face, row, col, center, index: cellNumber });
             }
         }
     }
 
-    // Цвета для фигур
+    // Цвета для фигур в порядке хода: красные, синие, зелёные, жёлтые, бирюзовые, розовые
     const colors = [
-        new BABYLON.Color3(1,0,0),
-        new BABYLON.Color3(0,1,0),
-        new BABYLON.Color3(0,0,1),
-        new BABYLON.Color3(1,1,0),
-        new BABYLON.Color3(1,0,1),
-        new BABYLON.Color3(0,1,1),
+        new BABYLON.Color3(1, 0, 0),       // красные
+        new BABYLON.Color3(0, 0, 1),       // синие
+        new BABYLON.Color3(0, 1, 0),       // зелёные
+        new BABYLON.Color3(1, 1, 0),       // жёлтые
+        new BABYLON.Color3(0, 0.8, 0.8),   // бирюзовые
+        new BABYLON.Color3(1, 0.45, 0.7)   // розовые
     ];
 
-    // Простые шахматные фигуры (пример)
+    const playerNames = ["Красные","Синие","Зелёные","Жёлтые","Бирюзовые","Розовые"];
+
+    // Порядок игроков (индексы лиц) соответствует порядку цветов выше
+    const playersOrder = [0, 1, 2, 3, 4, 5];
+    let currentPlayerIndex = 0; // указывает на индекс в playersOrder
+
+    // Объекты фигур
     const yourFigures = {
         rook: {
             vertices: [[-0.036639, 0.134065, -0.047741], [0.006664, 0.134065, -0.062255], [0.04754, 0.134065, -0.041891], [0.062048, 0.134065, 0.001406], [0.04169, 0.134065, 0.042288], [-0.001613, 0.134065, 0.056795], [-0.042489, 0.134065, 0.036432], [-0.056997, 0.134065, -0.006865], [-0.051757, 0.050153, -0.065126], [0.00826, 0.050153, -0.085235], [0.064919, 0.050153, -0.057015], [0.085034, 0.050153, 0.003008], [0.056808, 0.050153, 0.059667], [-0.003209, 0.050153, 0.079776], [-0.059868, 0.050153, 0.051556], [-0.079977, 0.050153, -0.008467], [-0.03849, 0.113903, -0.049877], [0.00686, 0.113903, -0.065073], [0.04967, 0.113903, -0.043748], [0.064866, 0.113903, 0.001602], [0.043547, 0.113903, 0.044418], [-0.001809, 0.113903, 0.059614], [-0.044619, 0.113903, 0.038289], [-0.059815, 0.113903, -0.007061], [-0.057376, 0.072291, -0.071582], [0.008854, 0.072291, -0.093774], [0.071381, 0.072291, -0.062634], [0.093572, 0.072291, 0.003602], [0.062427, 0.072291, 0.066123], [-0.003803, 0.072291, 0.088314], [-0.06633, 0.072291, 0.057175], [-0.088521, 0.072291, -0.009061], [-0.064562, 0.048065, -0.079842], [-0.065559, 0.042558, -0.080981], [0.00972, 0.042558, -0.106204], [0.009613, 0.048065, -0.104691], [0.08078, 0.042558, -0.070811], [0.079635, 0.048065, -0.069814], [0.106003, 0.042559, 0.004462], [0.10449, 0.048065, 0.004361], [0.07061, 0.042559, 0.075522], [0.069613, 0.048065, 0.074382], [-0.004669, 0.042559, 0.100745], [-0.004562, 0.048065, 0.099232], [-0.075729, 0.042559, 0.065352], [-0.074584, 0.048065, 0.064355], [-0.100946, 0.042559, -0.009921], [-0.099439, 0.048065, -0.009814], [-0.053039, 0.016659, -0.066598], [-0.054368, 0.0174, -0.068123], [0.008397, 0.016659, -0.087181], [0.008539, 0.0174, -0.089199], [0.066391, 0.016659, -0.058297], [0.067922, 0.0174, -0.05962], [0.086974, 0.016659, 0.003139], [0.088998, 0.0174, 0.003281], [0.05809, 0.016659, 0.061139], [0.059419, 0.0174, 0.062664], [-0.003346, 0.016659, 0.081722], [-0.003482, 0.0174, 0.08374], [-0.06134, 0.016659, 0.052838], [-0.062871, 0.0174, 0.054167], [-0.081923, 0.016659, -0.008598], [-0.083947, 0.0174, -0.00874], [0.006296, 0.134065, -0.056998], [-0.033179, 0.134065, -0.043772], [0.043565, 0.134065, -0.038437], [0.056791, 0.134065, 0.001044], [0.038231, 0.134065, 0.038313], [-0.001245, 0.134065, 0.051538], [-0.038514, 0.134065, 0.032978], [-0.051739, 0.134065, -0.006503], [0.005477, 0.187805, -0.045154], [-0.025389, 0.187805, -0.034812], [0.034611, 0.187805, -0.030647], [0.044953, 0.187805, 0.000219], [0.03044, 0.187805, 0.029359], [-0.00042, 0.187805, 0.039695], [-0.02956, 0.187805, 0.025188], [-0.039902, 0.187805, -0.005679], [-0.024867, 0.254682, 0.021099], [0.004807, 0.268299, -0.035524], [-0.019052, 0.268299, -0.027532], [0.027325, 0.268299, -0.024304], [0.035317, 0.268299, -0.000451], [0.024103, 0.268299, 0.022073], [0.000244, 0.268299, 0.030065], [-0.022274, 0.268299, 0.018845], [-0.030266, 0.268299, -0.005008], [-0.052499, 0.258242, -0.006557], [-0.052499, 0.265653, -0.006557], [-0.033678, 0.265653, -0.044347], [-0.033678, 0.258242, -0.044347], [-0.001299, 0.258242, 0.052298], [-0.001299, 0.265653, 0.052298], [-0.039089, 0.265653, 0.033477], [-0.039089, 0.258242, 0.033477], [0.057556, 0.258242, 0.001098], [0.057556, 0.265653, 0.001098], [0.038729, 0.265653, 0.038888], [0.038729, 0.258242, 0.038888], [0.00635, 0.258242, -0.057757], [0.00635, 0.265653, -0.057757], [0.04414, 0.265653, -0.038936], [0.04414, 0.258242, -0.038936], [-0.02152, 0.254682, -0.030368], [-0.02991, 0.253032, -0.04001], [-0.029916, 0.24933, -0.040016], [-0.021378, 0.247627, -0.030202], [-0.000901, 0.24933, 0.046578], [-0.000901, 0.253032, 0.046566], [-1.7e-05, 0.254682, 0.033815], [-0.046779, 0.24933, -0.006159], [-0.046773, 0.253032, -0.006153], [-0.034016, 0.254682, -0.005269], [-0.034758, 0.253032, 0.029709], [-0.034764, 0.24933, 0.029709], [-0.02495, 0.247627, 0.021177], [0.030001, 0.247627, -0.026636], [0.039815, 0.24933, -0.035168], [0.039809, 0.253032, -0.035162], [0.030161, 0.254682, -0.026772], [0.005068, 0.254682, -0.039274], [0.005952, 0.253032, -0.052025], [0.005952, 0.24933, -0.052037], [0.00505, 0.247627, -0.039061], [0.034967, 0.24933, 0.034557], [0.034961, 0.253032, 0.034551], [0.026571, 0.254682, 0.024909], [0.039073, 0.254682, -0.00019], [0.051824, 0.253032, 0.0007], [0.05183, 0.24933, 0.0007], [0.038854, 0.247627, -0.000202], [0.02653, 0.247627, 0.024861], [0.029906, 0.246577, 0.028742], [0.029995, 0.24374, 0.028843], [0.026138, 0.242038, 0.02441], [0.034, 0.246577, -0.030113], [0.034095, 0.24374, -0.030196], [0.029663, 0.242038, -0.026339], [-0.033957, 0.247627, -0.005263], [-0.039089, 0.246577, -0.005625], [-0.03922, 0.24374, -0.005631], [-0.033357, 0.242038, -0.005222], [-1.1e-05, 0.247627, 0.03375], [-0.000367, 0.246577, 0.038888], [-0.000379, 0.24374, 0.039019], [3.1e-05, 0.242038, 0.033156], [-0.021087, 0.242038, -0.02987], [-0.024944, 0.24374, -0.034302], [-0.024855, 0.246577, -0.034201], [-0.024611, 0.242038, 0.02088], [-0.029044, 0.24374, 0.024737], [-0.028949, 0.246577, 0.024654], [0.005021, 0.242038, -0.038615], [0.00543, 0.24374, -0.044478], [0.005418, 0.246577, -0.044347], [0.038409, 0.242038, -0.000238], [0.044271, 0.24374, 0.000172], [0.04414, 0.246577, 0.000166], [0.006818, 0.272281, -0.064509], [-0.038122, 0.272281, -0.04945], [0.049249, 0.272281, -0.043374], [0.064302, 0.272281, 0.001566], [0.043173, 0.272281, 0.043991], [-0.001767, 0.272281, 0.05905], [-0.044198, 0.272281, 0.037921], [-0.059251, 0.272281, -0.007025], [0.006818, 0.280398, -0.064509], [-0.038122, 0.280398, -0.04945], [0.049249, 0.280398, -0.043374], [0.064302, 0.280398, 0.001566], [0.043173, 0.280398, 0.043991], [-0.001767, 0.280398, 0.05905], [-0.044198, 0.280398, 0.037921], [-0.059251, 0.280398, -0.007025], [0.006083, 0.280398, -0.053888], [-0.031132, 0.280398, -0.041422], [0.041215, 0.280398, -0.03639], [0.053687, 0.280398, 0.000825], [0.036189, 0.280398, 0.035963], [-0.001032, 0.280398, 0.048429], [-0.036164, 0.280398, 0.030931], [-0.048636, 0.280398, -0.006284], [0.005181, 0.269907, -0.040906], [-0.022588, 0.269907, -0.031596], [0.031395, 0.269907, -0.027846], [0.040699, 0.269907, -7.7e-05], [0.027645, 0.269907, 0.026143], [-0.00013, 0.269907, 0.035447], [-0.026344, 0.269907, 0.022387], [-0.035648, 0.269907, -0.005382], [0.005311, 0.280398, -0.042769], [-0.023816, 0.280398, -0.033008], [0.032801, 0.280398, -0.029074], [0.042562, 0.280398, 5.3e-05], [0.028867, 0.280398, 0.027549], [-0.000254, 0.280398, 0.03731], [-0.02775, 0.280398, 0.023615], [-0.037511, 0.280398, -0.005512], [-0.001542, 0.313287, -0.059632], [-0.02851, 0.313287, -0.050595], [0.059431, 0.313287, -0.0068], [0.050394, 0.313287, -0.033762], [0.006593, 0.313287, 0.054173], [0.033561, 0.313287, 0.045136], [-0.054374, 0.313287, 0.001341], [-0.045343, 0.313287, 0.028303], [-0.001987, 0.313287, -0.053259], [-0.024315, 0.313287, -0.045777], [0.053058, 0.313287, -0.007239], [0.045576, 0.313287, -0.029573], [0.007038, 0.313287, 0.0478], [0.029366, 0.313287, 0.040318], [-0.048007, 0.313287, 0.00178], [-0.040525, 0.313287, 0.024114], [0.039886, 0.313287, -0.045843], [0.014431, 0.313287, -0.058523], [0.045642, 0.313287, 0.034628], [0.058316, 0.313287, 0.009173], [-0.034835, 0.313287, 0.040383], [-0.009374, 0.313287, 0.053063], [-0.04059, 0.313287, -0.040087], [-0.053264, 0.313287, -0.014632], [0.035068, 0.313287, -0.041653], [0.013986, 0.313287, -0.05215], [0.041446, 0.313287, 0.02981], [0.051949, 0.313287, 0.008728], [-0.030017, 0.313287, 0.036194], [-0.008935, 0.313287, 0.046691], [-0.036395, 0.313287, -0.035269], [-0.046898, 0.313287, -0.014187], [-0.075573, 0.028854, -0.041626], [-0.082624, 0.045331, -0.04513], [-0.073083, 0.049219, -0.040388], [-0.069233, 0.060677, -0.038471], [-0.058824, 0.096991, -0.033288], [-0.047958, 0.124218, -0.027872], [-0.044537, 0.134065, -0.026172], [-0.036953, 0.164227, -0.022392], [-0.029706, 0.217186, -0.018781], [-0.029468, 0.242825, -0.018666], [-0.032026, 0.24516, -0.019944], [-0.029751, 0.247142, -0.018633], [-0.03225, 0.248346, -0.019942], [-0.038345, 0.251181, -0.023084], [-0.03227, 0.25398, -0.02006], [-0.033881, 0.256103, -0.020866], [-0.043088, 0.261947, -0.025452], [-0.031541, 0.267311, -0.0197], [-0.032991, 0.26968, -0.020422], [-0.058789, 0.272235, -0.007261], [-0.058474, 0.272174, -0.006971], [-0.059026, 0.272281, -0.007478], [-0.04863, 0.276317, -0.028351], [-0.047585, 0.300952, -0.027691], [-0.053302, 0.313078, -0.014584], [-0.044006, 0.313287, -0.026061], [-0.052977, 0.313287, -0.015209], [-0.053199, 0.313145, -0.014783], [-0.040986, 0.300954, -0.0244], [-0.034711, 0.280398, -0.021278], [-0.029872, 0.275028, -0.018864], [0.052945, 0.294438, 0.004199], [0.043605, 0.280398, 0.021071], [-0.080205, 0.028854, 0.02499], [-0.087672, 0.045331, 0.027478], [-0.077565, 0.049219, 0.02411], [-0.073489, 0.060679, 0.022742], [-0.062463, 0.096993, 0.019044], [-0.028037, 0.096988, 0.058623], [-0.03322, 0.060676, 0.069027], [-0.022621, 0.124216, 0.047755], [-0.020927, 0.134065, 0.044329], [-0.017135, 0.164225, 0.036748], [-0.039293, 0.164226, 0.011283], [-0.047326, 0.134065, 0.013981], [-0.031618, 0.21719, 0.008711], [-0.01341, 0.242825, 0.029264], [-0.014684, 0.245161, 0.031826], [-0.013102, 0.247152, 0.029635], [-0.014714, 0.248347, 0.03204], [-0.017832, 0.251181, 0.038142], [0.025464, 0.2549, 0.023636], [0.045637, 0.253032, 0.01312], [-0.014565, 0.253973, 0.032046], [-0.015548, 0.256097, 0.033681], [-0.020194, 0.261947, 0.042887], [-0.01444, 0.267311, 0.031338], [-0.015164, 0.26968, 0.032789], [-0.022984, 0.276339, 0.048485], [-0.022435, 0.300954, 0.047383], [-0.020669, 0.313287, 0.043833], [-0.019144, 0.300956, 0.040782], [-0.016021, 0.280398, 0.034509], [-0.013609, 0.275028, 0.029671], [0.020315, 0.300956, 0.050353], [0.019052, 0.313287, 0.046593], [-0.048097, 0.290608, -0.008737], [-0.042379, 0.29721, -0.0211], [0.018561, 0.300287, 0.043121], [0.029713, 0.311612, 0.040096], [0.015737, 0.280398, 0.036719], [0.014027, 0.275029, 0.031591], [0.05007, 0.290117, 0.009392], [0.046038, 0.300951, 0.018939], [-0.035134, 0.049219, 0.072878], [-0.039882, 0.045332, 0.082417], [-0.036374, 0.028854, 0.075372], [-0.032723, 0.017026, 0.068122], [-0.072511, 0.017025, 0.022408], [0.027675, 0.017025, 0.072303], [0.030245, 0.028852, 0.079999], [0.032751, 0.045332, 0.087465], [0.029359, 0.049219, 0.077363], [0.027994, 0.060678, 0.073285], [0.0243, 0.096989, 0.062261], [0.020443, 0.124217, 0.050751], [0.063875, 0.096991, 0.027824], [0.074286, 0.060678, 0.033014], [0.078136, 0.049219, 0.034929], [0.087674, 0.045332, 0.039679], [0.053011, 0.124217, 0.022416], [0.04959, 0.134065, 0.02071], [0.042003, 0.164223, 0.016935], [0.034759, 0.217187, 0.013325], [0.036669, 0.21719, -0.01417], [0.044344, 0.164222, -0.016739], [0.052377, 0.134065, -0.019441], [0.056003, 0.124218, -0.020648], [0.067511, 0.096994, -0.024507], [0.078543, 0.060678, -0.028199], [0.082618, 0.049219, -0.029565], [0.083207, 0.048065, -0.059152], [0.077818, 0.048065, -0.070719], [0.078757, 0.048189, -0.06905], [0.093639, 0.045545, -0.030041], [0.085257, 0.028852, -0.030446], [0.080627, 0.028854, 0.036167], [0.077557, 0.017025, -0.027881], [0.041427, 0.028853, -0.080826], [0.037823, 0.017025, -0.073557], [-0.02261, 0.017025, -0.077766], [-0.027695, 0.045332, -0.092924], [0.044937, 0.045332, -0.087875], [0.078147, 0.048108, -0.070134], [0.040187, 0.049219, -0.078336], [0.038267, 0.060677, -0.07449], [0.033085, 0.09699, -0.064082], [0.02767, 0.124217, -0.053215], [0.025978, 0.134065, -0.049788], [0.022186, 0.16423, -0.042208], [0.018582, 0.217182, -0.034963], [0.013967, 0.217183, 0.031415], [0.016541, 0.164222, 0.039088], [0.019227, 0.134065, 0.047128], [0.013881, 0.242825, 0.031162], [0.014802, 0.245162, 0.033867], [0.034519, 0.242825, 0.013208], [0.037069, 0.245159, 0.014502], [0.036415, 0.242825, -0.014086], [0.039131, 0.24516, -0.014982], [0.018462, 0.242825, -0.034723], [0.019716, 0.245163, -0.037291], [-0.00883, 0.242825, -0.036622], [-0.008915, 0.217189, -0.036873], [-0.011487, 0.164226, -0.044546], [0.050848, 0.261948, -0.01892], [0.045819, 0.251181, -0.017233], [0.02298, 0.251171, -0.043549], [0.025244, 0.261948, -0.048347], [0.039765, 0.280398, 0.015816], [0.034923, 0.275028, 0.013409], [0.055609, 0.300955, -0.020516], [0.048619, 0.300951, -0.018171], [0.024196, 0.300955, -0.046241], [0.030495, 0.254625, -0.027062], [0.020256, 0.253961, -0.037476], [0.039386, 0.253979, -0.015074], [0.038611, 0.267311, -0.01482], [0.019493, 0.267311, -0.036798], [0.036593, 0.267311, 0.014241], [0.038936, 0.256103, 0.015405], [0.026573, 0.254682, 0.02491], [0.037322, 0.253979, 0.014604], [0.043396, 0.251181, 0.017628], [0.037198, 0.248352, 0.014607], [0.014867, 0.248351, 0.034093], [0.039262, 0.248349, -0.015039], [-0.008533, 0.266566, 0.04076], [0.000857, 0.269351, 0.021232], [0.0198, 0.248349, -0.037409], [-0.021704, 0.247692, -0.030577], [-0.010234, 0.248371, -0.039478], [-0.010397, 0.256103, -0.0413], [-0.013664, 0.261948, -0.051052], [-0.009566, 0.267311, -0.038819], [0.018663, 0.275028, -0.035131], [0.02107, 0.280398, -0.039969], [-0.010686, 0.280398, -0.042178], [-0.00897, 0.275027, -0.037052], [-0.012915, 0.300955, -0.048821], [0.025724, 0.313287, -0.049291], [0.0113, 0.300953, -0.056785], [-0.001554, 0.313287, -0.05946], [-0.001675, 0.313287, -0.059587], [-0.013892, 0.313287, -0.052064], [0.001263, 0.301157, -0.057405], [-0.043565, 0.300951, 0.012714], [-0.046801, 0.313287, 0.013794], [0.05658, 0.300954, 0.006042], [0.049093, 0.313287, 0.020455], [0.028033, 0.276339, -0.053942], [0.056776, 0.276339, -0.020904], [0.053738, 0.276339, 0.022778], [0.020703, 0.276339, 0.051521], [-0.059032, 0.272259, -0.007137], [-0.058949, 0.272281, -0.006122], [-0.059038, 0.272251, -0.007011], [-0.051648, 0.276298, 0.015675], [-0.019247, 0.09699, -0.067719], [-0.02294, 0.060677, -0.078745], [-0.024307, 0.049219, -0.082823], [-0.01539, 0.124216, -0.056208], [-0.014191, 0.134065, -0.05258], [-0.050952, 0.124217, 0.015188], [0.036844, 0.275027, -0.01423], [0.041971, 0.280398, -0.015948], [0.042095, 0.300946, 0.035129], [0.003736, 0.300963, 0.052021], [-0.041902, 0.300957, 0.029288], [0.034545, 0.300955, 0.041697], [-0.035334, 0.300955, 0.036842], [-0.029494, 0.300946, -0.047153], [-0.037041, 0.300946, -0.040588], [0.057276, 0.300947, -0.003939], [0.051851, 0.313287, -0.019261], [-0.05153, 0.30096, -0.011503], [-0.052222, 0.30095, -0.001519], [0.05264, 0.300953, 0.022229], [0.027491, 0.300951, -0.052841], [-0.015304, 0.300988, -0.055797], [-0.015652, 0.276339, -0.05698], [-0.050558, 0.300955, 0.015057], [-0.006248, 0.300956, 0.051324], [0.002526, 0.269907, -0.00273], [-0.03692, 0.280398, 0.010489], [-0.031793, 0.275026, 0.008773], [0.040387, 0.300952, -0.042299], [0.046953, 0.300956, -0.034747], [0.020214, 0.26968, -0.038245], [-0.01008, 0.26968, -0.040355], [0.018717, 0.261947, 0.045592], [0.015448, 0.256103, 0.03584], [0.048142, 0.261947, 0.019993], [0.041092, 0.256103, -0.015651], [0.020661, 0.256103, -0.039139], [-0.036025, 0.256091, 0.010072], [-0.045794, 0.261948, 0.01346], [-0.059023, 0.272256, -0.006866], [-0.035096, 0.26968, 0.009875], [-0.03356, 0.267311, 0.00936], [-0.040768, 0.251181, 0.011776], [-0.03433, 0.253984, 0.009522], [-0.034299, 0.248349, 0.009576], [-0.034074, 0.245161, 0.009534], [-0.031545, 0.247137, 0.008674], [-0.031363, 0.242825, 0.008626], [0.013435, 0.254048, 0.034098], [0.017033, 0.251181, 0.040561], [-0.011982, 0.251181, -0.046022], [-0.009824, 0.25398, -0.039587], [-0.025193, 0.028853, -0.085458], [-0.068289, 0.017025, -0.038051], [0.002524, 0.016659, -0.002732], [0.073341, 0.017025, 0.03259], [-6.2e-05, 0.268905, 0.034476], [-0.00501, 0.26877, 0.030994], [0.013357, 0.269953, 0.037429], [0.040145, 0.26968, -0.015335], [0.038044, 0.26968, 0.014961], [0.014616, 0.267311, 0.033361], [0.000244, 0.268298, 0.030073], [-0.009737, 0.245161, -0.039331], [-0.008888, 0.247138, -0.036796], [0.018544, 0.247138, -0.034891], [0.036592, 0.247138, -0.014143], [0.034721, 0.247139, 0.013374], [0.013966, 0.247136, 0.03141], [-0.013528, 0.217188, 0.029505]],
@@ -120,93 +164,97 @@ const createScene = function() {
         }
     };
 
-    // Создаем меши фигур
-    const figures = [];
-    let figureIndex = 0;
-    const highlightMaterial = new BABYLON.StandardMaterial("highlightMat", scene);
-    highlightMaterial.diffuseColor = new BABYLON.Color3(0,1,0);
-    highlightMaterial.alpha = 0.3;
+    const figures = []; // массив объектов { mesh, cell, face, type, owner }
+    let selectedFigureMesh = null;
+    let selectedFigureObj = null;
     let highlightedCells = [];
-    let selectedPiece = null;
 
-    for (let face=0; face<6; face++) {
-        // В качестве примера — размещаем все 6 фигур в клетках №1-6 на каждой стороне
-        for (let i=0; i<6; i++) {
-            const data = yourFigures["pawn"]; // Можно менять фигуру
-            const mesh = createMeshFromArrays(data.vertices, data.faces, scene);
-            mesh.material = new BABYLON.StandardMaterial("mat", scene);
-            mesh.material.diffuseColor = colors[face];
-            // Находим клетку №(i+1) на этой стороне
-            const cell = cells.find(c => c.face===face && c.index===i+1);
-            // Располагаем
-            placeFigureOnFace(mesh, cell, face);
-            // Обработка выбора
-            mesh.actionManager = new BABYLON.ActionManager(scene);
-            mesh.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPickDownTrigger, ()=> {
-                selectedPiece=mesh;
-            }));
-            figures.push({mesh, cell, face});
-            figureIndex++;
+    // Материал подсветки
+    const highlightMaterial = new BABYLON.StandardMaterial("highlightMat", scene);
+    highlightMaterial.diffuseColor = new BABYLON.Color3(0, 1, 0);
+    highlightMaterial.alpha = 0.3;
+
+    // Проверка занятости клетки
+    function isCellOccupied(cell) {
+        return figures.some(f => f.cell.face === cell.face && f.cell.row === cell.row && f.cell.col === cell.col);
+    }
+
+    // Создаем фигуры
+    const figureTypes = ["rook", "queen", "pawn", "king", "horse", "bishop"];
+
+    for (let face = 0; face < 6; face++) {
+        for (let i = 0; i < figureTypes.length; i++) {
+            const figureType = figureTypes[i];
+            const data = yourFigures[figureType];
+            const cell = cells.find(c => c.face === face && c.index === i + 1);
+            if (!cell) continue;
+            if (!isCellOccupied(cell)) {
+                const mesh = createMeshFromArrays(data.vertices, data.faces, scene);
+                const mat = new BABYLON.StandardMaterial(`mat_${face}_${i}`, scene);
+                mat.diffuseColor = colors[face];
+                mesh.material = mat;
+                placeFigureOnFace(mesh, cell, face);
+
+                const figObj = { mesh, cell: { face: cell.face, row: cell.row, col: cell.col }, face, type: figureType, owner: face };
+
+                mesh.actionManager = new BABYLON.ActionManager(scene);
+                mesh.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPickDownTrigger, () => {
+                    // Разрешаем выбрать только фигуру игрока, чей ход
+                    const currentPlayerFace = playersOrder[currentPlayerIndex];
+                    if (figObj.owner !== currentPlayerFace) {
+                        // Игрок не может выбрать чужую фигуру
+                        return;
+                    }
+                    selectedFigureObj = figObj;
+                    selectedFigureMesh = mesh;
+                }));
+
+                figures.push(figObj);
+            }
         }
     }
 
-    // Функции
-    function createMeshFromArrays(vertices,faces,scene){
+    // Создаем меш из массивов вершин и граней
+    function createMeshFromArrays(vertices, faces, scene) {
         const positions = [];
         const indices = [];
-        vertices.forEach(v => { positions.push(v[0],v[1],v[2]) });
-        faces.forEach(f => { indices.push(f[0],f[1],f[2]) });
+        vertices.forEach(v => {
+            positions.push(v[0], v[1], v[2]);
+        });
+        faces.forEach(f => {
+            indices.push(f[0], f[1], f[2]);
+        });
         const mesh = new BABYLON.Mesh("custom", scene);
         const vertexData = new BABYLON.VertexData();
         vertexData.positions = positions;
         vertexData.indices = indices;
         vertexData.applyToMesh(mesh, true);
-        // Можно добавить материал
-        const mat = new BABYLON.StandardMaterial("mat", scene);
-        mat.diffuseColor = new BABYLON.Color3(0.8,0.5,0.3);
-        mesh.material=mat;
         return mesh;
     }
 
-function placeFigureOnFace(mesh, cell, face) {
-    const offset = 0.05; // расстояние от поверхности
-    // Вектор нормали к поверхности в зависимости от стороны
-    let normal;
-    switch (face) {
-        case 0: // Передняя
-            normal = new BABYLON.Vector3(0, 0, 1);
-            break;
-        case 1: // Задняя
-            normal = new BABYLON.Vector3(0, 0, -1);
-            break;
-        case 2: // Левая
-            normal = new BABYLON.Vector3(-1, 0, 0);
-            break;
-        case 3: // Правая
-            normal = new BABYLON.Vector3(1, 0, 0);
-            break;
-        case 4: // Верхняя
-            normal = new BABYLON.Vector3(0, 1, 0);
-            break;
-        case 5: // Нижняя
-            normal = new BABYLON.Vector3(0, -1, 0);
-            break;
+    // Расположение фигуры на клетке
+    function placeFigureOnFace(mesh, cell, face) {
+        const offset = 0.05;
+        let normal;
+        switch (face) {
+            case 0: normal = new BABYLON.Vector3(0, 0, 1); break;
+            case 1: normal = new BABYLON.Vector3(0, 0, -1); break;
+            case 2: normal = new BABYLON.Vector3(-1, 0, 0); break;
+            case 3: normal = new BABYLON.Vector3(1, 0, 0); break;
+            case 4: normal = new BABYLON.Vector3(0, 1, 0); break;
+            case 5: normal = new BABYLON.Vector3(0, -1, 0); break;
+        }
+        mesh.position = cell.center.add(normal.scale(offset));
+        // Ориентируем модель так, чтобы она "стояла" на грани
+        mesh.lookAt(mesh.position.add(normal));
+        // Небольшая поправка ориентации
+        mesh.rotation.x += Math.PI / 2;
+        mesh.metadata = { cell: { face: face, row: cell.row, col: cell.col } };
     }
-    // Расположить чуть выше поверхности
-    mesh.position = cell.center.add(normal.scale(offset));
-    // Ориентация фигуры так, чтобы она "стояла" на поверхности
-    // Для этого задаем вращение так, чтобы "вертикаль" фигуры совпадала с нормалью
-    // Можно использовать lookAt или установить rotation вручную
-    mesh.lookAt(mesh.position.add(normal));
-    // Повернуть фигуру так, чтобы она стояла вертикально (если нужно)
-    // Например, если фигура "стоит" вертикально, то можно повернуть ее на 90 градусов
-    // В зависимости от модели, возможно, потребуется дополнительная настройка
-    mesh.rotation.x += Math.PI/2; // пример, если модель "лежит"
-}
 
-    // Обработка перемещения
+    // Обработка выбора клетки и фигуры
     scene.onPointerObservable.add((pointerInfo) => {
-        if (pointerInfo.pickInfo.hit && selectedPiece) {
+        if (pointerInfo.pickInfo.hit && selectedFigureObj) {
             const pickPoint = pointerInfo.pickInfo.pickedPoint;
             if (pickPoint) {
                 let minDist = Infinity;
@@ -219,49 +267,336 @@ function placeFigureOnFace(mesh, cell, face) {
                     }
                 }
                 if (targetCell) {
-                    // Очистка старых подсветок
+                    // Подсветка выбранной клетки
                     highlightedCells.forEach(c => c.dispose());
                     highlightedCells = [];
-                    // Создаем подсветку
-                    const plane = BABYLON.MeshBuilder.CreatePlane("highlight", { size: Math.sqrt(2)* (cubeSize / gridCount) }, scene);
+                    const plane = BABYLON.MeshBuilder.CreatePlane("highlight", { size: Math.sqrt(2) * (cubeSize / gridCount) }, scene);
                     plane.position = targetCell.center.clone();
-                    plane.rotation.x = Math.PI/2;
+                    plane.rotation.x = Math.PI / 2;
                     plane.material = highlightMaterial;
                     highlightedCells.push(plane);
+
+                    // Проверка, можно ли походить
+                    if (isValidMove(selectedFigureObj, targetCell)) {
+                        // Если на клетке есть вражеская фигура — съедаем
+                        const targetFig = figures.find(f => f.cell.face === targetCell.face && f.cell.row === targetCell.row && f.cell.col === targetCell.col);
+                        if (targetFig && isEnemyFigure(targetCell, selectedFigureObj)) {
+                            // Удаляем фигуру противника
+                            try { targetFig.mesh.dispose(); } catch (e) { /* ignore */ }
+                            const idx = figures.indexOf(targetFig);
+                            if (idx !== -1) figures.splice(idx, 1);
+                        }
+
+                        // Перемещаем фигуру
+                        placeFigureOnFace(selectedFigureObj.mesh, targetCell, targetCell.face);
+                        // Обновляем координаты фигуры
+                        selectedFigureObj.cell = { face: targetCell.face, row: targetCell.row, col: targetCell.col };
+
+                        // После успешного хода — переходим ходу следующего игрока
+                        advanceTurn();
+
+                        // Сбрасываем выбор
+                        selectedFigureObj = null;
+                        selectedFigureMesh = null;
+                    }
                 }
             }
         }
-        if (pointerInfo.event.type==="pointerup") {
-            if (selectedPiece && highlightedCells.length>0) {
-                selectedPiece.position = highlightedCells[0].position.clone();
-                // Можно добавить проверку допустимости хода
-                // Отключаем выделение
-                highlightedCells.forEach(c => c.dispose());
-                highlightedCells = [];
-                selectedPiece=null;
-            }
+        if (pointerInfo.event.type === "pointerup") {
+            selectedFigureObj = null;
+            selectedFigureMesh = null;
         }
     });
 
-    // Восстановление контроля камеры
+    // Обработка нажатия мыши (предотвращаем захват камеры при выборе своей фигуры)
     scene.onPointerDown = (evt, pickResult) => {
-        if (pickResult.hit && pickResult.pickedMesh && figures.some(f=>f.mesh===pickResult.pickedMesh)){
-            camera.detachControl(canvas);
+        if (pickResult.hit && pickResult.pickedMesh) {
+            const fig = figures.find(f => f.mesh === pickResult.pickedMesh);
+            if (fig) {
+                const currentPlayerFace = playersOrder[currentPlayerIndex];
+                if (fig.owner === currentPlayerFace) {
+                    camera.detachControl(canvas);
+                    selectedFigureObj = fig;
+                    selectedFigureMesh = pickResult.pickedMesh;
+                }
+            }
         }
     };
+
     scene.onPointerUp = (evt, pickResult) => {
         camera.attachControl(canvas, true);
+        selectedFigureObj = null;
+        selectedFigureMesh = null;
     };
+
+    // Проверка, является ли фигура врагом
+    function isEnemyFigure(targetCell, fig) {
+        const targetFig = figures.find(f => f.cell.face === targetCell.face && f.cell.row === targetCell.row && f.cell.col === targetCell.col);
+        if (!targetFig) return false;
+        return targetFig.owner !== fig.owner;
+    }
+
+    // Проверка допустимости хода
+    function isValidMove(figObj, targetCell) {
+        if (!figObj) return false;
+        const fig = figObj;
+        const from = fig.cell;
+        const to = targetCell;
+
+        // Нельзя походить на свою фигуру
+        if (isCellOccupied(to) && !isEnemyFigure(to, fig)) return false;
+
+        const deltaRow = to.row - from.row;
+        const deltaCol = to.col - from.col;
+        const face = from.face;
+
+        switch (fig.type) {
+            case "pawn": {
+                // Пешка: вперед на одну клетку, либо два при первом ходе; захват по диагонали
+                const direction = (face === 0 || face === 4) ? 1 : (face === 1 || face === 5) ? -1 : 0;
+                if (direction === 0) return false;
+                // прямой ход
+                if (deltaCol === 0) {
+                    if (deltaRow === direction && !isCellOccupied(to)) return true;
+                    const startRow = (face === 0 || face === 4) ? 1 : 6;
+                    if ((from.row === startRow) && deltaRow === 2 * direction) {
+                        const intermediateCell = { face: face, row: from.row + direction, col: from.col };
+                        if (!isCellOccupied(intermediateCell) && !isCellOccupied(to)) return true;
+                    }
+                }
+                // захват
+                if (deltaRow === direction && Math.abs(deltaCol) === 1 && isEnemyFigure(to, fig)) return true;
+                return false;
+            }
+            case "horse": // конь
+                return (Math.abs(deltaRow) === 2 && Math.abs(deltaCol) === 1) || (Math.abs(deltaRow) === 1 && Math.abs(deltaCol) === 2);
+
+            case "bishop": // слон
+                if (Math.abs(deltaRow) === Math.abs(deltaCol)) return isPathClear(from, to);
+                return false;
+
+            case "rook": // ладья
+                if (deltaRow === 0 || deltaCol === 0) return isPathClear(from, to);
+                return false;
+
+            case "queen": // ферзь
+                if ((deltaRow === 0 || deltaCol === 0) || (Math.abs(deltaRow) === Math.abs(deltaCol))) return isPathClear(from, to);
+                return false;
+
+            case "king": // король
+                return Math.abs(deltaRow) <= 1 && Math.abs(deltaCol) <= 1;
+
+            default:
+                return false;
+        }
+    }
+
+    // Проверка, что путь свободен (для фигур, движущихся по линиям)
+    function isPathClear(from, to) {
+        const deltaRow = to.row - from.row;
+        const deltaCol = to.col - from.col;
+        const stepRow = Math.sign(deltaRow);
+        const stepCol = Math.sign(deltaCol);
+        let current = { face: from.face, row: from.row + stepRow, col: from.col + stepCol };
+        while (!(current.row === to.row && current.col === to.col)) {
+            if (isCellOccupied(current)) return false;
+            current = { face: from.face, row: current.row + stepRow, col: current.col + stepCol };
+        }
+        return true;
+    }
+
+    // Возвращает массив клеток, по которым фигура может ходить (используется для подсветки / AI / подсказок)
+    function getPossibleMoves(fig) {
+        const moves = [];
+        const { face, row, col } = fig.cell;
+        switch (fig.type) {
+            case "pawn": {
+                const direction = (face === 0 || face === 4) ? 1 : (face === 1 || face === 5) ? -1 : 0;
+                if (direction === 0) break;
+                const forwardCell = { face, row: row + direction, col };
+                if (forwardCell.row >= 0 && forwardCell.row < gridCount && !isCellOccupied(forwardCell)) {
+                    moves.push(forwardCell);
+                    const startRow = (face === 0 || face === 4) ? 1 : 6;
+                    if (row === startRow) {
+                        const twoStepCell = { face, row: row + 2 * direction, col };
+                        if (!isCellOccupied(twoStepCell)) moves.push(twoStepCell);
+                    }
+                }
+                // захваты
+                const diagLeft = { face, row: row + direction, col: col - 1 };
+                const diagRight = { face, row: row + direction, col: col + 1 };
+                [diagLeft, diagRight].forEach(t => {
+                    if (t.row >= 0 && t.row < gridCount && t.col >= 0 && t.col < gridCount && isEnemyFigure(t, fig)) moves.push(t);
+                });
+                break;
+            }
+            case "horse": {
+                const horseMoves = [
+                    { dr: 2, dc: 1 },
+                    { dr: 2, dc: -1 },
+                    { dr: -2, dc: 1 },
+                    { dr: -2, dc: -1 },
+                    { dr: 1, dc: 2 },
+                    { dr: 1, dc: -2 },
+                    { dr: -1, dc: 2 },
+                    { dr: -1, dc: -2 }
+                ];
+                horseMoves.forEach(move => {
+                    const target = { face, row: row + move.dr, col: col + move.dc };
+                    if (target.row >= 0 && target.row < gridCount && target.col >= 0 && target.col < gridCount) {
+                        if (!isCellOccupied(target) || isEnemyFigure(target, fig)) moves.push(target);
+                    }
+                });
+                break;
+            }
+            case "bishop": {
+                for (let d = 1; d < gridCount; d++) {
+                    const targets = [
+                        { face, row: row + d, col: col + d },
+                        { face, row: row + d, col: col - d },
+                        { face, row: row - d, col: col + d },
+                        { face, row: row - d, col: col - d }
+                    ];
+                    targets.forEach(t => {
+                        if (t.row >= 0 && t.row < gridCount && t.col >= 0 && t.col < gridCount) {
+                            if (isCellOccupied(t)) {
+                                if (isEnemyFigure(t, fig)) moves.push(t);
+                                // блокировка пути
+                            } else {
+                                moves.push(t);
+                            }
+                        }
+                    });
+                }
+                break;
+            }
+            case "rook": {
+                for (let d = 1; d < gridCount; d++) {
+                    const targets = [
+                        { face, row: row + d, col: col },
+                        { face, row: row - d, col: col },
+                        { face, row: row, col: col + d },
+                        { face, row: row, col: col - d }
+                    ];
+                    targets.forEach(t => {
+                        if (t.row >= 0 && t.row < gridCount && t.col >= 0 && t.col < gridCount) {
+                            if (isCellOccupied(t)) {
+                                if (isEnemyFigure(t, fig)) moves.push(t);
+                                // блокировка пути
+                            } else {
+                                moves.push(t);
+                            }
+                        }
+                    });
+                }
+                break;
+            }
+            case "queen": {
+                // комбинируем движения ладьи и слона
+                // for simplicity: проверяем все направления
+                const directions = [
+                    { dr: 1, dc: 0 }, { dr: -1, dc: 0 }, { dr: 0, dc: 1 }, { dr: 0, dc: -1 },
+                    { dr: 1, dc: 1 }, { dr: 1, dc: -1 }, { dr: -1, dc: 1 }, { dr: -1, dc: -1 }
+                ];
+                directions.forEach(dir => {
+                    for (let d = 1; d < gridCount; d++) {
+                        const t = { face, row: row + dir.dr * d, col: col + dir.dc * d };
+                        if (t.row < 0 || t.row >= gridCount || t.col < 0 || t.col >= gridCount) break;
+                        if (isCellOccupied(t)) {
+                            if (isEnemyFigure(t, fig)) moves.push(t);
+                            break;
+                        } else {
+                            moves.push(t);
+                        }
+                    }
+                });
+                break;
+            }
+            case "king": {
+                for (let dr = -1; dr <= 1; dr++) {
+                    for (let dc = -1; dc <= 1; dc++) {
+                        if (dr === 0 && dc === 0) continue;
+                        const t = { face, row: row + dr, col: col + dc };
+                        if (t.row >= 0 && t.row < gridCount && t.col >= 0 && t.col < gridCount) {
+                            if (!isCellOccupied(t) || isEnemyFigure(t, fig)) moves.push(t);
+                        }
+                    }
+                }
+                break;
+            }
+        }
+        return moves;
+    }
+
+    // Переход хода к следующему активному игроку (пропускаем тех, у кого нет фигур)
+    function advanceTurn() {
+        const totalPlayers = playersOrder.length;
+        for (let i = 1; i <= totalPlayers; i++) {
+            const nextIndex = (currentPlayerIndex + i) % totalPlayers;
+            const nextPlayerFace = playersOrder[nextIndex];
+            const hasFigures = figures.some(f => f.owner === nextPlayerFace);
+            if (hasFigures) {
+                currentPlayerIndex = nextIndex;
+                const currentPlayerFace = playersOrder[currentPlayerIndex];
+                console.log(`Ход: ${playerNames[currentPlayerFace]}`);
+                showCurrentPlayerUI(playerNames[currentPlayerFace], colors[currentPlayerFace]);
+                return;
+            }
+        }
+        // если ни у кого фигур не осталось — игра окончена
+        console.log('Игра окончена');
+        showCurrentPlayerUI('Игра окончена', new BABYLON.Color3(0.2,0.2,0.2));
+    }
+
+    // Небольшой UI-индикатор текущего игрока
+    let turnDiv = document.getElementById('turnIndicator');
+    if (!turnDiv) {
+        turnDiv = document.createElement('div');
+        turnDiv.id = 'turnIndicator';
+        turnDiv.style.position = 'absolute';
+        turnDiv.style.top = '10px';
+        turnDiv.style.left = '1320px';
+        turnDiv.style.padding = '6px 10px';
+        turnDiv.style.background = 'rgba(255,255,255,0.8)';
+        turnDiv.style.borderRadius = '6px';
+        turnDiv.style.fontFamily = 'Arial, sans-serif';
+        document.body.appendChild(turnDiv);
+    }
+    function showCurrentPlayerUI(name, color) {
+        turnDiv.textContent = `Текущий игрок: ${name}`;
+        const c = `rgb(${Math.round(color.r*255)}, ${Math.round(color.g*255)}, ${Math.round(color.b*255)})`;
+        turnDiv.style.border = `2px solid ${c}`;
+    }
+
+    // Инициализация UI текущего игрока
+    showCurrentPlayerUI(playerNames[playersOrder[currentPlayerIndex]], colors[playersOrder[currentPlayerIndex]]);
+
+    // Основная логика для перемещения (если нужно вызывать программно)
+    function moveFigure(figObj, targetCell) {
+        if (isValidMove(figObj, targetCell)) {
+            const targetFig = figures.find(f => f.cell.face === targetCell.face && f.cell.row === targetCell.row && f.cell.col === targetCell.col);
+            if (targetFig && isEnemyFigure(targetCell, figObj)) {
+                try { targetFig.mesh.dispose(); } catch(e) {}
+                const idx = figures.indexOf(targetFig);
+                if (idx !== -1) figures.splice(idx, 1);
+            }
+            placeFigureOnFace(figObj.mesh, targetCell, targetCell.face);
+            figObj.cell = { face: targetCell.face, row: targetCell.row, col: targetCell.col };
+            advanceTurn();
+        }
+    }
+
+    // Обновление рендера
+    engine.runRenderLoop(() => {
+        scene.render();
+    });
+
+    window.addEventListener("resize", () => {
+        engine.resize();
+    });
 
     return scene;
 };
 
 const scene = createScene();
-
-engine.runRenderLoop(() => {
-    scene.render();
-});
-
-window.addEventListener("resize", () => {
-    engine.resize();
-});
+export default createScene;
