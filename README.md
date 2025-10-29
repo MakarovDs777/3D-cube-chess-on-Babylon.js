@@ -30,6 +30,6 @@
 
 [3D cubic chess (Version 4 - Rules of moves) | Babylon.js Playground](https://playground.babylonjs.com/#IUOF0L#0)
 
-Осталось сделать ходы игроков по кругу, и добавить к ним вомзожность есть друг друга.
+Осталось сделать ходы игроков по кругу, и добавить к ним возможность есть друг друга.
 
 [3D cubic chess (Version 5 - FINAL version) | Babylon.js Playground](https://playground.babylonjs.com/#H2GVMG)
